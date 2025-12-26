@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>投票</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <p class="instruction">投票用紙を投票箱にドラッグしてください</p>
+
+    <div id="ballotBox" class="ballot-box">
+      🗳️
+      <div class="box-text">投票箱</div>
+    </div>
+
+    <div class="ballots">
+      <img src="ballot1.png" class="ballot" draggable="true" data-value="A" alt="安藤路真">
+      <img src="ballot2.png" class="ballot" draggable="true" data-value="B" alt="加藤そら">
+      <img src="ballot3.png" class="ballot" draggable="true" data-value="C" alt="中原博史">
+    </div>
+
+    <div class="vote-message" id="voteMessage"></div>
+  </div>
+
+  <div class="modal hidden" id="confirmModal">
+    <div class="modal-content">
+      <p id="confirmText"></p>
+      <div class="modal-buttons">
+        <button id="confirmYes">投票する</button>
+        <button id="confirmNo" class="cancel">投票しない</button>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { ref, set, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+/* ===== 認証チェック & 投票済みチェック ===== */
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    location.href = "login.html";
+    return;
+  }
+
+  const voteRef = ref(db, "votes/" + user.uid);
+  const snapshot = await get(voteRef);
+  if (snapshot.exists()) {
+    alert("あなたは既に投票済みです");
+    location.href = "alreadyVoted.html";
+  }
+});
+
+const ballotsContainer = document.querySelector(".ballots");
+const ballots = Array.from(ballotsContainer.children);
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+shuffle(ballots);
+
+ballotsContainer.innerHTML = "";
+ballots.forEach(b => ballotsContainer.appendChild(b));
+
+/* ===== 状態 ===== */
+let selectedVote = null;
+
+/* ===== ドラッグ処理 ===== */
+document.querySelectorAll(".ballot").forEach(ballot => {
+  ballot.addEventListener("dragstart", () => {
+    selectedVote = ballot.alt;
+    ballot.classList.add("dragging");
+  });
+
+  ballot.addEventListener("dragend", () => {
+    ballot.classList.remove("dragging");
+  });
+});
+
+/* ===== 投票箱 ===== */
+const box = document.getElementById("ballotBox");
+const modal = document.getElementById("confirmModal");
+const confirmText = document.getElementById("confirmText");
+const messageEl = document.getElementById("voteMessage");
+
+box.addEventListener("dragover", e => {
+  e.preventDefault();
+  box.classList.add("hover");
+});
+
+box.addEventListener("dragleave", () => {
+  box.classList.remove("hover");
+});
+
+box.addEventListener("drop", e => {
+  e.preventDefault();
+  box.classList.remove("hover");
+  if (!selectedVote) return;
+
+  confirmText.innerHTML = `${selectedVote}さんに投票します。<br>よろしいですか？`;
+  modal.classList.remove("hidden");
+});
+
+/* ===== モーダル操作 ===== */
+document.getElementById("confirmNo").onclick = () => {
+  modal.classList.add("hidden");
+  selectedVote = null;
+};
+
+document.getElementById("confirmYes").onclick = async () => {
+  try {
+    const uid = auth.currentUser.uid;
+
+    // 選択した ballot 要素を取得（alt名で一致）
+    const ballotEl = [...document.querySelectorAll(".ballot")]
+      .find(b => b.alt === selectedVote);
+
+    if (ballotEl) {
+      ballotEl.style.transition = "all 0.6s ease";
+      ballotEl.style.transform = "translateY(-200px) scale(0.2)";
+      ballotEl.style.opacity = "0.5";
+    }
+
+    await set(ref(db, "votes/" + uid), {
+      choice: selectedVote,
+      votedAt: serverTimestamp()
+    });
+
+    setTimeout(() => {
+      location.href = "complete.html";
+    }, 700);
+
+  } catch (e) {
+    modal.classList.add("hidden");
+    messageEl.textContent = "投票に失敗しました";
+    messageEl.classList.add("error");
+  }
+};
+</script>
+</body>
+</html>

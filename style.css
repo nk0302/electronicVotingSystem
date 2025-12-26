@@ -1,0 +1,250 @@
+* {
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f6f8;
+}
+
+.container {
+  width: 100%;
+  max-width: 720px;
+  padding: 32px 48px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+label {
+  width: 30%;
+  white-space: nowrap;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+p {
+  text-align: center;
+  font-size: 1.5em;
+}
+
+.input-area {
+  flex: 1;
+}
+
+/* ===== 共通入力エリア ===== */
+.char-input {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(var(--count), 1fr);
+  gap: 0;
+  column-gap: 16px;
+}
+
+/* ===== 縦長・シャープな入力枠 ===== */
+.char-input input {
+  width: 100%;
+  height: 48px;
+  text-align: center;
+  font-size: 1.8rem;
+  border: 2px solid #bbb;
+  border-radius: 5px;
+}
+
+/* フォーカス時 */
+.char-input input:focus {
+  outline: none;
+  border-color: #0088ff;
+  box-shadow: 0 0 0 1px rgba(74,144,226,.3);
+}
+
+.login-message {
+  height: 1.5em;
+  margin-top: 24px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #ff1100;
+}
+
+button {
+  display: block;
+  width: 30%;
+  height: 54px;
+  margin: 32px auto 0;
+  border: none;
+  border-radius: 5px;
+  background: #0088ff;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* 説明文 */
+.instruction {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* ===== 投票箱 ===== */
+.ballot-box {
+  width: 80%;
+  height: 180px;
+  margin: 0 auto 40px;
+  border: 3px dashed #999;
+  border-radius: 16px;
+  text-align: center;
+  font-size: 56px;
+  padding-top: 28px;
+  transition: 0.2s ease;
+  background: #fafafa;
+}
+
+.ballot-box.hover {
+  border-color: #0088ff;
+  background: #eef6ff;
+  transform: scale(1.03);
+}
+
+.box-text {
+  font-size: 1rem;
+  margin-top: 12px;
+  color: #333;
+}
+
+/* ===== 投票用紙 ===== */
+.ballots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 常に3枚 */
+  gap: 32px;
+  margin-top: 32px;
+}
+
+/* 投票用紙画像 */
+.ballot {
+  width: 100%;
+  max-width: 100%;
+  border: 2px solid #bbb;
+  border-radius: 10px;
+  background: #fff;
+  cursor: grab;
+  user-select: none;
+  transition: 0.15s ease;
+}
+
+/* hover */
+.ballot:hover {
+  border-color: #0088ff;
+  transform: translateY(-2px);
+}
+
+/* drag中 */
+.ballot.dragging {
+  opacity: 0.4;
+  transform: scale(0.95);
+}
+
+/* スマホ対応 */
+@media (max-width: 600px) {
+  .ballots {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* ===== 投票メッセージ ===== */
+.vote-message {
+  height: 1.5em;
+  margin-top: 24px;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.vote-message.error {
+  color: #ff1100;
+}
+
+/* ===== スマホ対応 ===== */
+@media (max-width: 600px) {
+  .ballots {
+    flex-direction: column;
+  }
+
+  .ballot {
+    font-size: 1.2rem;
+  }
+
+  .ballot-box {
+    width: 200px;
+    height: 160px;
+  }
+}
+
+/* ===== モーダル全体 ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 非表示 */
+.modal.hidden {
+  display: none;
+}
+
+/* ===== モーダル中身 ===== */
+.modal-content {
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  text-align: center;
+  width: 90%;
+  max-width: 560px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
+
+/* ===== ボタン ===== */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+.modal-buttons button {
+  width: 45%;
+  height: 48px;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-buttons .cancel {
+  background: #ccc;
+  color: #333;
+}

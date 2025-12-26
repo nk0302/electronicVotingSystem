@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ログイン</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>全体設計指名選挙</h1>
+
+    <div class="input-group">
+        <label>ID</label>
+        <div class="input-area">
+            <div class="char-input" data-count="4" data-kind="id"></div>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Password</label>
+        <div class="input-area">
+            <div class="char-input" data-count="6" data-kind="password"></div>
+        </div>
+    </div>
+
+    <div class="login-message" id="loginMessage"></div>
+
+    <button id="loginBtn">ログイン</button>
+  </div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { signInWithEmailAndPassword } 
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { ref, get } 
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+document.querySelectorAll(".char-input").forEach(group => {
+  const count = Number(group.dataset.count);
+  group.style.setProperty("--count", count);
+
+  const kind = group.dataset.kind;
+
+  for (let i = 0; i < count; i++) {
+    const input = document.createElement("input");
+    input.type = kind === "password" ? "password" : "text";
+    input.maxLength = 1;
+    input.autocomplete = "off";
+    group.appendChild(input);
+  }
+
+  const inputs = [...group.querySelectorAll("input")];
+  inputs.forEach((input, i) => {
+    input.addEventListener("input", e => {
+      e.target.value = e.target.value.replace(/[^a-zA-Z0-9#+\-*/_@]/g, "");
+      if (e.target.value && i < inputs.length - 1) inputs[i + 1].focus();
+    });
+    input.addEventListener("keydown", e => {
+      if (e.key === "Backspace" && !input.value && i > 0) inputs[i - 1].focus();
+    });
+  });
+});
+
+const collect = kind =>
+  [...document.querySelectorAll(`.char-input[data-kind="${kind}"] input`)]
+    .map(i => i.value)
+    .join("");
+
+const messageEl = document.getElementById("loginMessage");
+
+document.getElementById("loginBtn").onclick = async () => {
+  const userId = collect("id");
+  const password = collect("password");
+  const email = `${userId}@vote.local`;
+
+  messageEl.textContent = "";
+  messageEl.className = "login-message";
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    const adminRef = ref(db, "votes/admin");
+    let adminUid = null;
+    try {
+      const snapshot = await get(adminRef);
+      if (snapshot.exists()) adminUid = snapshot.val();
+    } catch (e) {
+      console.error("管理者チェック失敗:", e);
+    }
+
+    if (user.uid === adminUid) {
+      location.href = "admin.html";
+    } else {
+      location.href = "vote.html";
+    }
+
+  } catch (e) {
+    messageEl.textContent = "ID または Password が違います。";
+    messageEl.classList.add("error");
+  }
+};
+</script>
+</body>
+</html>

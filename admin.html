@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>投票結果</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+
+  h1 {
+    font-size: 5em;
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .bar-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .bar-label {
+    font-size: 3em;
+    width: 240px;
+    font-weight: 500;
+  }
+
+  .bar {
+    height: 54px;
+    background: #0088ff;
+    transition: width 0.5s ease;
+    min-width: 5px;
+  }
+
+  .bar-number {
+    margin-left: 12px;
+    font-size: 2em;
+    font-weight: bold;
+    min-width: 100px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>投票結果</h1>
+
+  <div class="bar-container">
+    <div class="bar-label">安藤路真</div>
+    <div class="bar" id="barA"></div>
+    <div class="bar-number" id="numA">0</div>
+  </div>
+
+  <div class="bar-container">
+    <div class="bar-label">加藤そら</div>
+    <div class="bar" id="barB"></div>
+    <div class="bar-number" id="numB">0</div>
+  </div>
+
+  <div class="bar-container">
+    <div class="bar-label">中原博史</div>
+    <div class="bar" id="barC"></div>
+    <div class="bar-number" id="numC">0</div>
+  </div>
+</div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+const barA = document.getElementById("barA");
+const barB = document.getElementById("barB");
+const barC = document.getElementById("barC");
+const numA = document.getElementById("numA");
+const numB = document.getElementById("numB");
+const numC = document.getElementById("numC");
+
+const votesRef = ref(db, "votes");
+
+const maxBarWidth = 1100;
+
+onValue(votesRef, snapshot => {
+  const votes = snapshot.val() || {};
+  let countA = 0, countB = 0, countC = 0;
+
+  Object.entries(votes).forEach(([uid, v]) => {
+    if (uid === "admin") return;
+    if (!v.choice) return;
+
+    if (v.choice === "安藤路真") countA++;
+    else if (v.choice === "加藤そら") countB++;
+    else if (v.choice === "中原博史") countC++;
+  });
+
+  const maxCount = Math.max(countA, countB, countC, 1);
+  const minWidth = 5;
+
+  barA.style.width = `${Math.max((countA / maxCount) * maxBarWidth, minWidth)}px`;
+  barB.style.width = `${Math.max((countB / maxCount) * maxBarWidth, minWidth)}px`;
+  barC.style.width = `${Math.max((countC / maxCount) * maxBarWidth, minWidth)}px`;
+
+  numA.textContent = countA;
+  numB.textContent = countB;
+  numC.textContent = countC;
+
+}, error => {
+  console.error("データ取得エラー:", error);
+});
+</script>
+</body>
+</html>

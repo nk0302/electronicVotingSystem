@@ -1,0 +1,15 @@
+# macOSの隠しファイル
+.DS_Store
+
+# Node.js関連
+node_modules/
+package-lock.json
+package.json
+
+# Firebase秘密鍵や設定ファイル
+*.json
+
+# その他不要ファイル
+*.log
+*.tmp
+*.csv
